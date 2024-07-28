@@ -26,15 +26,41 @@ def read_write_file(file_path='numbers.txt', lst=[1,2,6,3,7,9,3,5,4,0]):
             file.write(f'{i}\n')
 
 
-digits_1 = [int(input('Input yours digits-')) for _ in range(3)]
-digits_2 = [int(input('Input yours digits-')) for _ in range(1)]
-read_write_file(lst=digits_1)
-read_write_file(lst=digits_2)
+# digits_1 = [int(input('Input yours digits-')) for _ in range(3)]
+# digits_2 = [int(input('Input yours digits-')) for _ in range(1)]
+# read_write_file(lst=digits_1)
+# read_write_file(lst=digits_2)
 
 # ---------------------------
 # Задача 4: Создание файла отчета с данными о количестве слов в строках
 # Пользователь вводит 5 строк. Запишите эти строки в файл report.txt, добавив к каждой строке количество слов в ней.
-#
+
+def count_words_in_string(s):
+    words = s.split()
+    return len(words)
+
+lines = []
+for i in range(5):
+    line = input(f'Введите строку {i+1}: ')
+    word_count = count_words_in_string(line)
+    lines.append(f"{line} - колличество слов: {word_count}")
+
+with open('report.txt', 'w') as file:
+    for line in lines:
+        file.write(line + '\n')
 # ---------------------------
 # Задача 5: Запись чисел с фильтрацией по диапазону
 # Пользователь вводит 10 чисел. Запишите в файл filtered_numbers.txt только те числа, которые находятся в диапазоне от 10 до 50.
+
+numbers = []
+for i in range(10):
+    number = int(input(f"Введите число {i+1}: "))
+    numbers.append(number)
+
+filtered_numbers = [num for num in numbers if 10 <= num <= 50]
+
+with open("filtered_numbers.txt", "w") as file:
+    for num in filtered_numbers:
+        file.write(str(num) + "\n")
+
+print("Числа успешн записаны в файл filtered_numbers.txt")
