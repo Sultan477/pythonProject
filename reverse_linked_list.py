@@ -18,3 +18,16 @@ class Solution:
             curr = tmp
 
         return prev
+
+if __name__ == '__main__':
+
+    node3 = ListNode(3)
+    node2 = ListNode(2, node3)
+    node1 = ListNode(1, node2)
+
+    solution = Solution()
+    reversed_head = solution.reverseList(node1)
+
+    while reversed_head:
+        print(reversed_head.val)
+        reversed_head = reversed_head.next
