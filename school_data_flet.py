@@ -1,134 +1,145 @@
-import flet as ft
-from openpyxl import load_workbook
+import os
+import openpyxl
+from flet import (
+    Page, TextField, ElevatedButton, Column, Row, Container, Text, AlertDialog, app
+)
 
-# Класс для хранения информации о студенте
 class Student:
-    def __init__(self, name, surname, class_name, address, school_info, student_phone, school_phone, requirements):
-        self.name = name
-        self.surname = surname
-        self.class_name = class_name
+    def __init__(self, first_name, last_name, grade, address, school_info, student_phone, school_phone):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.grade = grade
         self.address = address
         self.school_info = school_info
         self.student_phone = student_phone
         self.school_phone = school_phone
-        self.requirements = requirements
 
-# Класс для управления базой данных учащихся
-class SchoolData:
-    def __init__(self):
-        # Загрузка электронной таблицы Excel
-        self.wb = load_workbook('students.xlsx')
-        self.ws = self.wb['Sheet1']
+class SchoolDatabase:
+    def __init__(self, file_name="student_data.xlsx"):
+        self.file_name = file_name
+        if not os.path.exists(file_name):
+            self.workbook = openpyxl.Workbook()
+            self.sheet = self.workbook.active
+            self._initialize_sheet()
+        else:
+            self.workbook = openpyxl.load_workbook(file_name)
+            self.sheet = self.workbook.active
+
+    def _initialize_sheet(self):
+        headers = ["First Name", "Last Name", "Grade", "Address", "School Info", "Student Phone", "School Phone"]
+        self.sheet.append(headers)
+        self.workbook.save(self.file_name)
 
     def add_student(self, student):
-        # Добавление нового студента в электронную таблицу
-        row_index = self.ws.max_row
-        self.ws.cell(row=row_index + 1, column=1).value = student.name
-        self.ws.cell(row=row_index + 1, column=2).value = student.surname
-        self.ws.cell(row=row_index + 1, column=3).value = student.class_name
-        self.ws.cell(row=row_index + 1, column=4).value = student.address
-        self.ws.cell(row=row_index + 1, column=5).value = student.school_info
-        self.ws.cell(row=row_index + 1, column=6).value = student.student_phone
-        self.ws.cell(row=row_index + 1, column=7).value = student.school_phone
-        self.ws.cell(row=row_index + 1, column=8).value = student.requirements
+        self.sheet.append([student.first_name, student.last_name, student.grade, student.address, student.school_info, student.student_phone, student.school_phone])
+        self.workbook.save(self.file_name)
 
-    def search_by_class(self, class_name):
-        # Поиск студентов по классу
-        results = []
-        for row in range(2, self.ws.max_row + 1):
-            if self.ws.cell(row=row, column=3).value == class_name:
-                results.append(self.ws.cell(row=row, column=1).value)
-        return results
+    def search_students_by_grade(self, grade):
+        return [row for row in self.sheet.iter_rows(values_only=True) if row[2] == grade]
 
-    def search_by_name(self, name):
-        # Поиск студентов по имени
-        results = []
-        for row in range(2, self.ws.max_row + 1):
-            if self.ws.cell(row=row, column=1).value == name:
-                results.append(self.ws.cell(row=row, column=1).value)
-        return results
+    def search_students_by_name(self, name):
+        return [row for row in self.sheet.iter_rows(values_only=True) if row[0] == name or row[1] == name]
 
-sd = SchoolData()
+def main(page: Page):
+    database = SchoolDatabase()
 
-# Функция для отображения окна приложения
-def show_app():
-    app = ft.App(title='Управление базой данных учащихся', size=(500, 600))
-    with app:
-        # Кнопка для добавления учащихся
-        btn_add = ft.Button(label='Добавить учащегося', on_click=lambda: add_student())
-        # Кнопки для поиска учащихся
-        btn_search_by_class = ft.Button(label='Поиск по классу', on_click=lambda: search_by_class())
-        btn_search_by_name = ft.Button(label='Поиск по имени', on_click=lambda: search_by_name())
-        # Отображение кнопок
-        ft.Grid().add(btn_add, row=0, col=0)
-        ft.Grid().add(btn_search_by_class, row=1, col=0)
-        ft.Grid().add(btn_search_by_name, row=2, col=0)
+    input_first_name = TextField(label="First Name")
+    input_last_name = TextField(label="Last Name")
+    input_grade = TextField(label="Grade")
+    input_street = TextField(label="Street")
+    input_city = TextField(label="City")
+    input_zip = TextField(label="ZIP Code")
+    input_school_number = TextField(label="School Number")
+    input_teacher_last_name = TextField(label="Teacher Last Name")
+    input_student_phone_type = TextField(label="Student Phone Type")
+    input_student_phone_number = TextField(label="Student Phone Number")
+    input_school_phone_type = TextField(label="School Phone Type")
+    input_school_phone_number = TextField(label="School Phone Number")
 
-# Функция для добавления учащегося
-def add_student():
-    # Диалоговое окно для ввода данных учащегося
-    dialog = ft.Dialog(title='Добавление учащегося')
-    with dialog:
-        name = ft.InputText(label='Имя')
-        surname = ft.InputText(label='Фамилия')
-        class_name = ft.InputText(label='Класс')
-        address = ft.InputText(label='Адрес')
-        school_info = ft.InputText(label='Школьная информация')
-        student_phone = ft.InputText(label='Студенческий телефон')
-        school_phone = ft.InputText(label='Школьный телефон')
-        requirements = ft.InputText(label='Требования')
-        # Отображение полей ввода
-        ft.Grid().add(name, row=0, col=0)
-        ft.Grid().add(surname, row=1, col=0)
-        ft.Grid().add(class_name, row=2, col=0)
-        ft.Grid().add(address, row=3, col=0)
-        ft.Grid().add(school_info, row=4, col=0)
-        ft.Grid().add(student_phone, row=5, col=0)
-        ft.Grid().add(school_phone, row=6, col=0)
-        ft.Grid().add(requirements, row=7, col=0)
+    add_student_dialog = AlertDialog(
+        title=Text("Add Student"),
+        content=Column([
+            Row([
+                Column([
+                    input_first_name,
+                    input_last_name,
+                    input_grade,
+                    input_street,
+                    input_city,
+                    input_zip
+                ], expand=True),
+                Column([
+                    input_school_number,
+                    input_teacher_last_name,
+                    input_student_phone_type,
+                    input_student_phone_number,
+                    input_school_phone_type,
+                    input_school_phone_number
+                ], expand=True)
+            ])
+        ]),
+        actions=[
+            ElevatedButton(text="Save", on_click=lambda e: add_student(e)),
+            ElevatedButton(text="Cancel", on_click=lambda e: close_add_student_dialog(e))
+        ]
+    )
 
-        # Проверка введенных данных и добавление учащегося
-        if dialog.wait():
-            data = {'name': name.value, 'surname': surname.value, 'class_name': class_name.value,
-                    'address': address.value, 'school_info': school_info.value,
-                    'student_phone': student_phone.value, 'school_phone': school_phone.value,
-                    'requirements': requirements.value}
-            sd = SchoolData()
-            sd.add_student(Student(**data))
+    def show_add_student_dialog(e):
+        page.dialog = add_student_dialog
+        add_student_dialog.open = True
+        page.update()
 
-# Функция для поиска учащихся по классу
-def search_by_class():
-    # Диалоговое окно для ввода класса
-    dialog = ft.Dialog(title='Поиск по классу')
-    with dialog:
-        class_name = ft.InputText(label='Класс')
-        # Отображение поля ввода
-        ft.Grid().add(class_name, row=0, col=0)
-        # Проверка введенного класса и вывод результатов
-        if dialog.wait():
-            sd = SchoolData()
-            results = sd.search_by_class(class_name.value)
-            if len(results) > 0:
-                ft.Alert(title='Результаты поиска', message=f'Студенты из класса "{class_name.value}":\n{", ".join(results)}').show()
-            else:
-                ft.Alert(title='Нет результатов', message='Не найдено студентов из класса "{}"'.format(class_name.value)).show()
+    def close_add_student_dialog(e):
+        add_student_dialog.open = False
+        page.update()
 
-# Функция для поиска учащихся по имени
-def search_by_name():
-    # Диалоговое окно для ввода имени
-    dialog = ft.Dialog(title='Поиск по имени')
-    with dialog:
-        name = ft.InputText(label='Имя')
-        # Отображение поля ввода
-        ft.Grid().add(name, row=0, col=0)
-        # Проверка введенного имени и вывод результатов
-        if dialog.wait():
-            sd = SchoolData()
-            results = sd.search_by_name(name.value)
-            if len(results) > 0:
-                ft.Alert(title='Результаты поиска', message=f'Студенты с именем "{name.value}":\n{", ".join(results)}').show()
-            else:
-                ft.Alert(title='Нет результатов', message='Не найдено студентов с именем "{}"'.format(name.value)).show()
+    def add_student(e):
+        student = Student(
+            first_name=input_first_name.value,
+            last_name=input_last_name.value,
+            grade=input_grade.value,
+            address=f"{input_street.value}, {input_city.value}, {input_zip.value}",
+            school_info=f"{input_school_number.value}, {input_teacher_last_name.value}",
+            student_phone=f"{input_student_phone_type.value}: {input_student_phone_number.value}",
+            school_phone=f"{input_school_phone_type.value}: {input_school_phone_number.value}"
+        )
+        database.add_student(student)
+        close_add_student_dialog(e)
 
-# Запуск приложения
-show_app()
+    search_input_grade = TextField(label="Grade")
+    search_input_name = TextField(label="Name")
+    search_results_column = Column()
+
+    def search_by_grade(e):
+        results = database.search_students_by_grade(search_input_grade.value)
+        search_results_column.controls.clear()
+        for result in results:
+            search_results_column.controls.append(Text(", ".join(result)))
+        page.update()
+
+    def search_by_name(e):
+        results = database.search_students_by_name(search_input_name.value)
+        search_results_column.controls.clear()
+        for result in results:
+            search_results_column.controls.append(Text(", ".join(result)))
+        page.update()
+
+    page.add(
+        Column([
+            ElevatedButton(text="Add Student", on_click=show_add_student_dialog),
+            Container(height=10),
+            Row([
+                search_input_grade,
+                ElevatedButton(text="Search by Grade", on_click=search_by_grade)
+            ]),
+            Row([
+                search_input_name,
+                ElevatedButton(text="Search by Name", on_click=search_by_name)
+            ]),
+            Container(height=10),
+            Text("Search Results:"),
+            search_results_column
+        ])
+    )
+
+app(target=main)
